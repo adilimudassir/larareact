@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface DeleteConfirmationModalProps {
     isOpen: boolean;
@@ -8,6 +9,13 @@ interface DeleteConfirmationModalProps {
     loading?: boolean;
     title: string;
     description: string;
+    cancelButtonLabel?: string;
+    confirmButtonLabel?: string;
+    cancelButtonVariant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
+    confirmButtonVariant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
+    cancelButtonClassName?: string;
+    confirmButtonClassName?: string;
+    footerClassName?: string;
 }
 
 export function DeleteConfirmationModal({
@@ -17,6 +25,13 @@ export function DeleteConfirmationModal({
     loading = false,
     title,
     description,
+    cancelButtonLabel = "Cancel",
+    confirmButtonLabel = "Delete",
+    cancelButtonVariant = "secondary",
+    confirmButtonVariant = "destructive",
+    cancelButtonClassName,
+    confirmButtonClassName,
+    footerClassName,
 }: DeleteConfirmationModalProps) {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -25,23 +40,23 @@ export function DeleteConfirmationModal({
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
-                <DialogFooter className="gap-4 sm:gap-2">
+                <DialogFooter className={cn("gap-4 sm:gap-2", footerClassName)}>
                     <Button
-                        variant="secondary"
+                        variant={cancelButtonVariant}
                         onClick={onClose}
                         disabled={loading}
-                        className="rounded-none bg-gray-200 hover:bg-gray-300"
+                        className={cancelButtonClassName}
                     >
-                        Cancel
+                        {cancelButtonLabel}
                     </Button>
                     <Button
-                        variant="destructive"
+                        variant={confirmButtonVariant}
                         onClick={onConfirm}
                         disabled={loading}
                         loading={loading}
-                        className="rounded-none bg-red-500 hover:bg-red-600"
+                        className={confirmButtonClassName}
                     >
-                        Delete
+                        {confirmButtonLabel}
                     </Button>
                 </DialogFooter>
             </DialogContent>

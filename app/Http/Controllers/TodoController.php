@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
 use App\Traits\HasPagination;
+use Illuminate\Support\Facades\Log;
 
 class TodoController extends Controller
 {
@@ -121,5 +122,18 @@ class TodoController extends Controller
 
         return redirect()->route('todos.index')
             ->with('success', 'Todo deleted successfully.');
+    }
+
+    /**
+     * Bulk delete the specified resources from storage.
+     */
+    public function bulkDestroy(Request $request)   
+    {
+        Log::info($request->all());
+
+        Todo::whereIn('id', $request->ids)->delete();
+
+        return redirect()->route('todos.index')
+            ->with('success', 'Todos deleted successfully.');
     }
 } 
