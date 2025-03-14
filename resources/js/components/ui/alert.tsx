@@ -63,4 +63,10 @@ function AlertDescription({
   )
 }
 
-export { Alert, AlertTitle, AlertDescription }
+interface AlertProps {
+  children: React.ReactNode;
+}
+
+// Default export for Alert
+export default Alert;
+export { AlertTitle, AlertDescription }
