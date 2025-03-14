@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { SearchInput } from "@/components/ui/search-input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@inertiajs/react";
-import { DeleteConfirmationModal } from "@/components/todos/delete-confirmation-modal";
+import { DeleteConfirmationModal } from "@/components/data-table/delete-confirmation-modal";
 import type { Column, ActionConfig } from "@/types/data-table";
 
 export interface PaginatedData<T> {
