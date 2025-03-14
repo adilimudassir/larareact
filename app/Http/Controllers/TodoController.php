@@ -7,7 +7,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
 use App\Traits\HasPagination;
-use App\Http\Resources\TodoResource;
 
 class TodoController extends Controller
 {
@@ -54,7 +53,7 @@ class TodoController extends Controller
     public function show(Todo $todo): Response
     {
         return Inertia::render('todos/show', [
-            'todo' => TodoResource::make($todo)
+            'todo' => $todo
         ]);
     }
 
@@ -64,7 +63,7 @@ class TodoController extends Controller
     public function edit(Todo $todo): Response
     {
         return Inertia::render('todos/edit', [
-            'todo' => TodoResource::make($todo)
+            'todo' => $todo
         ]);
     }
 
