@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { 
     Select,
     SelectContent,
@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import type { PaginationProps } from "@/types/data-table";
 
 export interface PaginatedData<T> {
     current_page: number;
@@ -30,22 +31,19 @@ export interface PaginatedData<T> {
     total: number;
 }
 
-interface DataTablePaginationProps<T> {
-    data: PaginatedData<T>;
-    routeName: string;
-    queryParams?: Record<string, string | number>;
-    onPageChange?: () => void;
+interface PageProps {
+    pageSizeOptions: number[];
+    defaultPageSize: number;
 }
 
-const PAGE_SIZES = [10, 15, 30, 50, 100] as const;
-type PageSize = typeof PAGE_SIZES[number];
-
 export function DataTablePagination<T>({ 
-    data, 
+    data,
     routeName,
     queryParams = {},
-    onPageChange 
-}: DataTablePaginationProps<T>) {
+    preserveScroll = true,
+    preserveState = true
+}: PaginationProps<T>) {
+    const { pageSizeOptions, defaultPageSize } = usePage<{ props: PageProps }>().props;
     const [isLoading, setIsLoading] = useState(false);
 
     const getCurrentParams = () => {
@@ -61,7 +59,7 @@ export function DataTablePagination<T>({
 
     const handlePageSizeChange = (value: string) => {
         setIsLoading(true);
-        const pageSize = parseInt(value) as PageSize;
+        const pageSize = parseInt(value);
         
         // Remove existing per_page from current params to avoid duplication
         const currentParams = getCurrentParams();
@@ -81,7 +79,6 @@ export function DataTablePagination<T>({
                 preserveScroll: true,
                 replace: true,
                 onSuccess: () => {
-                    onPageChange?.();
                     setIsLoading(false);
                 },
                 onError: () => setIsLoading(false)
@@ -89,58 +86,67 @@ export function DataTablePagination<T>({
         );
     };
 
-    const handlePageClick = (url: string | null) => {
-        if (!url) return;
-        setIsLoading(true);
-
-        const urlObj = new URL(url);
-        const page = urlObj.searchParams.get('page');
-        
+    const handlePageChange = (page: number) => {
         router.get(
-            route(routeName),
-            {
-                ...getCurrentParams(),
-                ...queryParams,
-                page: page || 1,
-                per_page: data.per_page
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-                onSuccess: () => {
-                    onPageChange?.();
-                    setIsLoading(false);
-                },
-                onError: () => setIsLoading(false)
-            }
+            route(routeName, { page }),
+            { ...queryParams },
+            { preserveState, preserveScroll }
         );
+    };
+
+    const getVisiblePages = () => {
+        const totalPages = data.last_page;
+        const currentPage = data.current_page;
+        const delta = 2; // Number of pages to show before and after current page
+
+        const pages: (number | string)[] = [];
+        
+        // Always show first page
+        pages.push(1);
+        
+        if (currentPage > delta + 2) {
+            pages.push('...');
+        }
+        
+        // Calculate range around current page
+        const rangeStart = Math.max(2, currentPage - delta);
+        const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
+        
+        for (let i = rangeStart; i <= rangeEnd; i++) {
+            pages.push(i);
+        }
+        
+        if (currentPage < totalPages - (delta + 1)) {
+            pages.push('...');
+        }
+        
+        // Always show last page if not already included
+        if (totalPages > 1) {
+            pages.push(totalPages);
+        }
+        
+        return pages;
     };
 
     // Format the page size for display
-    const formatPageSize = (size: number) => `${size} per page`;
+    const formatPageSize = (size: number) => `${size} Per Page`;
     
-    // Get current page size label
-    const currentPageSizeLabel = formatPageSize(data.per_page);
-
     return (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 whitespace-nowrap">
-                    Showing {data.from} to {data.to} of {data.total} items
-                </span>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
+            <div className="flex items-center gap-4">
+                <p className="text-sm text-muted-foreground whitespace-nowrap">
+                    Showing {data.from} to {data.to} of {data.total} {data.total === 1 ? "entry" : "entries"}
+                </p>
                 <Select
                     value={data.per_page.toString()}
                     onValueChange={handlePageSizeChange}
                     disabled={isLoading}
                 >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue>
-                            {currentPageSizeLabel}
-                        </SelectValue>
+                    <SelectTrigger className="h-9 w-[160px]">
+                        <SelectValue>{formatPageSize(data.per_page)}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                        {PAGE_SIZES.map((size) => (
+                        {(pageSizeOptions as number[]).map((size: number) => (
                             <SelectItem 
                                 key={size} 
                                 value={size.toString()}
@@ -151,56 +157,41 @@ export function DataTablePagination<T>({
                     </SelectContent>
                 </Select>
             </div>
-
-            <div className="flex items-center justify-center gap-2">
-                {data.links.map((link, i) => {
-                    if (link.label === "&laquo; Previous" || link.label === "Next &raquo;") {
-                        return null;
-                    }
-
-                    if (i === 0) {
-                        return (
+            <div className="flex items-center justify-end gap-2">
+                <Button
+                    variant="outline"
+                    className="h-9 w-9 p-0"
+                    onClick={() => handlePageChange(data.current_page - 1)}
+                    disabled={!data.prev_page_url}
+                >
+                    <span className="sr-only">Previous page</span>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {getVisiblePages().map((page, index) => (
+                    <div key={index}>
+                        {page === '...' ? (
+                            <span className="px-2 text-muted-foreground">...</span>
+                        ) : (
                             <Button
-                                key={link.label}
-                                variant="outline"
-                                size="sm"
-                                className={!link.url ? 'opacity-50 cursor-not-allowed' : ''}
-                                disabled={!link.url || isLoading}
-                                onClick={() => handlePageClick(link.url)}
+                                variant={data.current_page === page ? "default" : "outline"}
+                                className="h-9 w-9 p-0"
+                                onClick={() => typeof page === 'number' && handlePageChange(page)}
                             >
-                                <ChevronLeft className="h-4 w-4" />
+                                <span className="sr-only">Page {page}</span>
+                                {page}
                             </Button>
-                        );
-                    }
-
-                    if (i === data.links.length - 1) {
-                        return (
-                            <Button
-                                key={link.label}
-                                variant="outline"
-                                size="sm"
-                                className={!link.url ? 'opacity-50 cursor-not-allowed' : ''}
-                                disabled={!link.url || isLoading}
-                                onClick={() => handlePageClick(link.url)}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        );
-                    }
-
-                    return (
-                        <Button
-                            key={link.label}
-                            variant={link.active ? "default" : "outline"}
-                            size="sm"
-                            className="min-w-[2.25rem]"
-                            disabled={isLoading}
-                            onClick={() => handlePageClick(link.url)}
-                        >
-                            {link.label}
-                        </Button>
-                    );
-                })}
+                        )}
+                    </div>
+                ))}
+                <Button
+                    variant="outline"
+                    className="h-9 w-9 p-0"
+                    onClick={() => handlePageChange(data.current_page + 1)}
+                    disabled={!data.next_page_url}
+                >
+                    <span className="sr-only">Next page</span>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
             </div>
         </div>
     );

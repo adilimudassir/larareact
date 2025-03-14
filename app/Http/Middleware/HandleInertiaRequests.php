@@ -50,6 +50,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'pageSizeOptions' => config('pagination.allowed_page_sizes'),
+            'defaultPageSize' => config('pagination.default_page_size'),
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

@@ -30,4 +30,27 @@ export interface PaginationProps<T> {
     pageSizeOptions?: number[];
     /** Optional loading state */
     isLoading?: boolean;
+}
+
+export interface Column<T> {
+    header: string;
+    accessorKey: keyof T | string;
+    cell?: (row: T, index: number) => React.ReactNode;
+    sortable?: boolean;
+    className?: string;
+}
+
+export interface ActionConfig {
+    show?: {
+        route: string;
+        label: string;
+    };
+    edit?: {
+        route: string;
+        label: string;
+    };
+    delete?: {
+        route: string;
+        label: string;
+    };
 } 
