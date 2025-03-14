@@ -17,8 +17,36 @@ class TodoController extends Controller
      */
     public function index(Request $request): Response
     {
+        $query = Todo::query();
+
+        // Handle search
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Handle sorting
+        $sortField = $request->input('sort', 'created_at');
+        $direction = $request->input('direction', 'desc');
+        
+        // Validate sort field to prevent SQL injection
+        $allowedSortFields = ['title', 'description', 'completed', 'created_at'];
+        $sortField = in_array($sortField, $allowedSortFields) ? $sortField : 'created_at';
+        $direction = in_array($direction, ['asc', 'desc']) ? $direction : 'desc';
+
+        $query->orderBy($sortField, $direction);
+
         return Inertia::render('todos/index', [
-            'todos' => Todo::latest()->paginate($this->getPageSize($request))
+            'todos' => $query->paginate($this->getPageSize($request))
+                ->withQueryString(), // Important: Preserve query string in pagination links
+            'filters' => [
+                'search' => $request->input('search'),
+                'sort' => $sortField,
+                'direction' => $direction
+            ]
         ]);
     }
 
