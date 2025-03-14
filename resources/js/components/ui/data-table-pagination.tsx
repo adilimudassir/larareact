@@ -37,7 +37,7 @@ interface DataTablePaginationProps<T> {
     onPageChange?: () => void;
 }
 
-const PAGE_SIZES = [10, 20, 50, 100, 500] as const;
+const PAGE_SIZES = [10, 15, 30, 50, 100] as const;
 type PageSize = typeof PAGE_SIZES[number];
 
 export function DataTablePagination<T>({ 

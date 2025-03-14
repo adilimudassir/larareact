@@ -12,7 +12,7 @@ trait HasPagination
      */
     protected function getAllowedPageSizes(): array
     {
-        return config('pagination.allowed_page_sizes', [10, 20, 50, 100, 500]);
+        return config('pagination.allowed_page_sizes', [10, 15, 30, 50, 100]);
     }
 
     /**
