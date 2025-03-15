@@ -1,4 +1,4 @@
-import type { PaginationData, Filters } from './api';
+import type { Filters, PaginationData } from './api';
 
 export interface Todo {
     id: number;
@@ -10,4 +10,4 @@ export interface Todo {
 export interface TodoPageProps {
     todos: PaginationData<Todo>;
     filters: Filters;
-} 
+}

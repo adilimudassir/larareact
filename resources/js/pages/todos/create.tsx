@@ -1,11 +1,11 @@
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import InputError from '@/components/input-error';
 
 type TodoForm = {
     title: string;
@@ -44,13 +44,7 @@ export default function Create() {
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title</Label>
-                            <Input
-                                id="title"
-                                type="text"
-                                value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
-                                required
-                            />
+                            <Input id="title" type="text" value={data.title} onChange={(e) => setData('title', e.target.value)} required />
                             <InputError message={errors.title} />
                         </div>
 
@@ -67,11 +61,7 @@ export default function Create() {
                         </div>
 
                         <div className="flex justify-end gap-2">
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={() => window.history.back()}
-                            >
+                            <Button type="button" variant="secondary" onClick={() => window.history.back()}>
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={processing}>
@@ -83,4 +73,4 @@ export default function Create() {
             </div>
         </AppLayout>
     );
-} 
+}

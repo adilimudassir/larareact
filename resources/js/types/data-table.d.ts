@@ -32,4 +32,4 @@ export interface BulkActionConfig {
     data?: Record<string, any>;
     confirmTitle?: string;
     confirmDescription?: string;
-} 
+}

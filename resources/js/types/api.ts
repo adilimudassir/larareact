@@ -32,4 +32,4 @@ export interface SharedPageProps {
         info?: string;
     };
     [key: string]: any;
-} 
+}

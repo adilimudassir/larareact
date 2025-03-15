@@ -1,6 +1,6 @@
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface DeleteConfirmationModalProps {
     isOpen: boolean;
@@ -11,8 +11,8 @@ interface DeleteConfirmationModalProps {
     description: string;
     cancelButtonLabel?: string;
     confirmButtonLabel?: string;
-    cancelButtonVariant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
-    confirmButtonVariant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
+    cancelButtonVariant?: 'link' | 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+    confirmButtonVariant?: 'link' | 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
     cancelButtonClassName?: string;
     confirmButtonClassName?: string;
     footerClassName?: string;
@@ -25,10 +25,10 @@ export function DeleteConfirmationModal({
     loading = false,
     title,
     description,
-    cancelButtonLabel = "Cancel",
-    confirmButtonLabel = "Delete",
-    cancelButtonVariant = "secondary",
-    confirmButtonVariant = "destructive",
+    cancelButtonLabel = 'Cancel',
+    confirmButtonLabel = 'Delete',
+    cancelButtonVariant = 'secondary',
+    confirmButtonVariant = 'destructive',
     cancelButtonClassName,
     confirmButtonClassName,
     footerClassName,
@@ -40,13 +40,8 @@ export function DeleteConfirmationModal({
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
-                <DialogFooter className={cn("gap-4 sm:gap-2", footerClassName)}>
-                    <Button
-                        variant={cancelButtonVariant}
-                        onClick={onClose}
-                        disabled={loading}
-                        className={cancelButtonClassName}
-                    >
+                <DialogFooter className={cn('gap-4 sm:gap-2', footerClassName)}>
+                    <Button variant={cancelButtonVariant} onClick={onClose} disabled={loading} className={cancelButtonClassName}>
                         {cancelButtonLabel}
                     </Button>
                     <Button
@@ -62,4 +57,4 @@ export function DeleteConfirmationModal({
             </DialogContent>
         </Dialog>
     );
-} 
+}

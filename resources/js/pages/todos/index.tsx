@@ -1,15 +1,14 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
 import Alert, { AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, XCircle, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
-import type { Column } from '@/types/data-table';
-import type { Todo, TodoPageProps } from '@/types/todos';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 import type { SharedPageProps } from '@/types/api';
-import type { BulkActionConfig } from '@/types/data-table';
+import type { BulkActionConfig, Column } from '@/types/data-table';
+import type { Todo, TodoPageProps } from '@/types/todos';
+import { Head, usePage } from '@inertiajs/react';
+import { CheckCircle, Trash2, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,36 +36,28 @@ export default function Index({ todos, filters }: TodoPageProps) {
             cell: (_: Todo, index: number) => {
                 const pageNumber = Math.max(1, todos.current_page);
                 const itemsPerPage = todos.per_page;
-                return ((pageNumber - 1) * itemsPerPage) + index + 1;
+                return (pageNumber - 1) * itemsPerPage + index + 1;
             },
-            className: 'w-16 text-muted-foreground'
+            className: 'w-16 text-muted-foreground',
         },
         {
             header: 'Title',
             accessorKey: 'title',
             cell: (row: Todo) => <span className="font-medium">{row.title}</span>,
-            sortable: true
+            sortable: true,
         },
         {
             header: 'Description',
             accessorKey: 'description',
-            cell: (row: Todo) => (
-                <span className="text-muted-foreground">
-                    {row.description || 'No description'}
-                </span>
-            ),
-            sortable: true
+            cell: (row: Todo) => <span className="text-muted-foreground">{row.description || 'No description'}</span>,
+            sortable: true,
         },
         {
             header: 'Status',
             accessorKey: 'completed',
-            cell: (row: Todo) => (
-                <Badge variant={row.completed ? "success" : "secondary"}>
-                    {row.completed ? 'Completed' : 'Pending'}
-                </Badge>
-            ),
-            sortable: true
-        }
+            cell: (row: Todo) => <Badge variant={row.completed ? 'success' : 'secondary'}>{row.completed ? 'Completed' : 'Pending'}</Badge>,
+            sortable: true,
+        },
     ];
 
     const bulkActions: BulkActionConfig[] = [
@@ -77,8 +68,8 @@ export default function Index({ todos, filters }: TodoPageProps) {
             label: 'Mark Complete',
             variant: 'outline',
             className: 'text-green-600 hover:text-green-700',
-            icon: <CheckCircle className="w-4 h-4 mr-2" />,
-            data: { completed: true }
+            icon: <CheckCircle className="mr-2 h-4 w-4" />,
+            data: { completed: true },
         },
         {
             id: 'mark-incomplete',
@@ -87,8 +78,8 @@ export default function Index({ todos, filters }: TodoPageProps) {
             label: 'Mark Incomplete',
             variant: 'outline',
             className: 'text-yellow-600 hover:text-yellow-700',
-            icon: <XCircle className="w-4 h-4 mr-2" />,
-            data: { completed: false }
+            icon: <XCircle className="mr-2 h-4 w-4" />,
+            data: { completed: false },
         },
         {
             id: 'delete-selected',
@@ -97,8 +88,8 @@ export default function Index({ todos, filters }: TodoPageProps) {
             label: 'Delete Selected',
             variant: 'outline',
             className: 'text-red-600 hover:text-red-700',
-            icon: <Trash2 className="w-4 h-4 mr-2" />
-        }
+            icon: <Trash2 className="mr-2 h-4 w-4" />,
+        },
     ];
 
     return (
@@ -121,20 +112,20 @@ export default function Index({ todos, filters }: TodoPageProps) {
                     actions={{
                         show: {
                             route: 'todos.show',
-                            label: 'Show'
+                            label: 'Show',
                         },
                         edit: {
                             route: 'todos.edit',
-                            label: 'Edit'
+                            label: 'Edit',
                         },
                         delete: {
                             route: 'todos.destroy',
-                            label: 'Delete'
-                        }
+                            label: 'Delete',
+                        },
                     }}
                     bulkActions={bulkActions}
                 />
             </div>
         </AppLayout>
     );
-} 
+}

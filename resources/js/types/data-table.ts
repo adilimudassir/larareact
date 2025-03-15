@@ -154,4 +154,4 @@ export interface DataTableProps<T extends { id: number }> {
     bulkActions?: BulkActionConfig[];
     /** Optional custom sort handler */
     onSort?: (field: string) => void;
-} 
+}

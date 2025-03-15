@@ -1,13 +1,6 @@
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2 } from 'lucide-react';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -17,7 +10,7 @@ interface ConfirmationModalProps {
     title: string;
     description: string;
     confirmLabel?: string;
-    confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
 export function ConfirmationModal({
@@ -27,8 +20,8 @@ export function ConfirmationModal({
     loading = false,
     title,
     description,
-    confirmLabel = "Confirm",
-    confirmVariant = "destructive"
+    confirmLabel = 'Confirm',
+    confirmVariant = 'destructive',
 }: ConfirmationModalProps) {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -38,18 +31,10 @@ export function ConfirmationModal({
                     <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={onClose}
-                        disabled={loading}
-                    >
+                    <Button variant="outline" onClick={onClose} disabled={loading}>
                         Cancel
                     </Button>
-                    <Button
-                        variant={confirmVariant}
-                        onClick={onConfirm}
-                        disabled={loading}
-                    >
+                    <Button variant={confirmVariant} onClick={onConfirm} disabled={loading}>
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {confirmLabel}
                     </Button>
@@ -57,4 +42,4 @@ export function ConfirmationModal({
             </DialogContent>
         </Dialog>
     );
-} 
+}
