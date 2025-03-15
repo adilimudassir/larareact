@@ -33,8 +33,8 @@ export interface PaginationProps<T> {
 }
 
 export interface Column<T> {
-    header: string;
-    accessorKey: keyof T | string;
+    header: string | (() => React.ReactNode);
+    accessorKey: string;
     cell?: (row: T, index: number) => React.ReactNode;
     sortable?: boolean;
     className?: string;
@@ -53,4 +53,17 @@ export interface ActionConfig {
         route: string;
         label: string;
     };
+}
+
+export interface BulkActionConfig {
+    id: string; // Unique identifier for the action
+    route: string;
+    label: string;
+    method?: 'post' | 'put' | 'patch' | 'delete';
+    variant?: 'default' | 'destructive' | 'outline';
+    className?: string;
+    icon?: React.ReactNode;
+    data?: Record<string, any>; // Additional data to send with the request
+    confirmTitle?: string;
+    confirmDescription?: string;
 } 

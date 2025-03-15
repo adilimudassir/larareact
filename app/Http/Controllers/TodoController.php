@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Todo;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Filters\TodoFilter;
 use Illuminate\Http\Request;
 use App\Traits\HasPagination;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Builder;
 
 class TodoController extends Controller
 {
@@ -18,35 +20,16 @@ class TodoController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Todo::query();
-
-        // Handle search
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($query) use ($search) {
-                $query->where('title', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // Handle sorting
-        $sortField = $request->input('sort', 'created_at');
-        $direction = $request->input('direction', 'desc');
-        
-        // Validate sort field to prevent SQL injection
-        $allowedSortFields = ['title', 'description', 'completed', 'created_at'];
-        $sortField = in_array($sortField, $allowedSortFields) ? $sortField : 'created_at';
-        $direction = in_array($direction, ['asc', 'desc']) ? $direction : 'desc';
-
-        $query->orderBy($sortField, $direction);
+        $filter = new TodoFilter($request);
+        $query = Todo::query()->filter($filter);
 
         return Inertia::render('todos/index', [
             'todos' => $query->paginate($this->getPageSize($request))
-                ->withQueryString(), // Important: Preserve query string in pagination links
+                ->withQueryString(),
             'filters' => [
                 'search' => $request->input('search'),
-                'sort' => $sortField,
-                'direction' => $direction
+                'sort' => $request->input('sort', $filter->getDefaultSortField()),
+                'direction' => $request->input('direction', $filter->getDefaultSortDirection())
             ]
         ]);
     }
@@ -125,15 +108,65 @@ class TodoController extends Controller
     }
 
     /**
+     * Get the query for bulk actions
+     */
+    protected function getBulkActionQuery(Request $request): Builder
+    {
+        $query = Todo::query();
+
+        if ($request->all) {
+            $filter = new TodoFilter($request);
+            return $query->filter($filter);
+        }
+
+        return $query->whereIn('id', $request->ids);
+    }
+
+    /**
+     * Validate bulk action request
+     */
+    protected function validateBulkActionRequest(Request $request, array $additional = []): array
+    {
+        return $request->validate(array_merge([
+            'ids' => ['array'],
+            'ids.*' => ['integer', 'exists:todos,id'],
+            'all' => ['required', 'boolean'],
+            'filters' => ['array'],
+            'filters.search' => ['nullable', 'string'],
+            'filters.sort' => ['nullable', 'string'],
+            'filters.direction' => ['nullable', 'string'],
+        ], $additional));
+    }
+
+    /**
      * Bulk delete the specified resources from storage.
      */
-    public function bulkDestroy(Request $request)   
+    public function bulkDestroy(Request $request)
     {
-        Log::info($request->all());
+        $this->validateBulkActionRequest($request);
 
-        Todo::whereIn('id', $request->ids)->delete();
-
+        $query = $this->getBulkActionQuery($request);
+        $count = $query->count();
+        $query->delete();
         return redirect()->route('todos.index')
-            ->with('success', 'Todos deleted successfully.');
+            ->with('success', $count . ' items deleted successfully');
+    }
+
+    /**
+     * Bulk update the specified resources.
+     */
+    public function bulkUpdate(Request $request)
+    {
+        $this->validateBulkActionRequest($request, [
+            'completed' => ['required', 'boolean'],
+        ]);
+
+        $query = $this->getBulkActionQuery($request);
+        $count = $query->count();
+        $query->update(['completed' => $request->completed]);
+
+        $status = $request->completed ? 'completed' : 'uncompleted';
+        return redirect()->route('todos.index')
+            ->with('success', $count . ' items marked as ' . $status);
     }
 } 

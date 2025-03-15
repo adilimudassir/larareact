@@ -2,13 +2,14 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import Alert, { AlertTitle } from '@/components/ui/alert';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import type { Column } from '@/types/data-table';
 import type { Todo, TodoPageProps } from '@/types/todos';
 import type { SharedPageProps } from '@/types/api';
+import type { BulkActionConfig } from '@/types/data-table';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -68,13 +69,45 @@ export default function Index({ todos, filters }: TodoPageProps) {
         }
     ];
 
+    const bulkActions: BulkActionConfig[] = [
+        {
+            id: 'mark-complete',
+            route: 'todos.bulk.update',
+            method: 'put',
+            label: 'Mark Complete',
+            variant: 'outline',
+            className: 'text-green-600 hover:text-green-700',
+            icon: <CheckCircle className="w-4 h-4 mr-2" />,
+            data: { completed: true }
+        },
+        {
+            id: 'mark-incomplete',
+            route: 'todos.bulk.update',
+            method: 'put',
+            label: 'Mark Incomplete',
+            variant: 'outline',
+            className: 'text-yellow-600 hover:text-yellow-700',
+            icon: <XCircle className="w-4 h-4 mr-2" />,
+            data: { completed: false }
+        },
+        {
+            id: 'delete-selected',
+            route: 'todos.bulk.destroy',
+            method: 'delete',
+            label: 'Delete Selected',
+            variant: 'outline',
+            className: 'text-red-600 hover:text-red-700',
+            icon: <Trash2 className="w-4 h-4 mr-2" />
+        }
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Todos" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {showAlert && (
                     <Alert variant="default">
-                        <CheckCircle2 className="text-green-500" />
+                        <CheckCircle className="text-green-500" />
                         <AlertTitle>{flash.success}</AlertTitle>
                     </Alert>
                 )}
@@ -100,6 +133,7 @@ export default function Index({ todos, filters }: TodoPageProps) {
                             label: 'Delete'
                         }
                     }}
+                    bulkActions={bulkActions}
                 />
             </div>
         </AppLayout>

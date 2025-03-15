@@ -6,7 +6,9 @@ import { SearchInput } from "@/components/ui/search-input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@inertiajs/react";
 import { DeleteConfirmationModal } from "@/components/data-table/delete-confirmation-modal";
-import type { Column, ActionConfig } from "@/types/data-table";
+import { ConfirmationModal } from "@/components/data-table/confirmation-modal";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { Column, ActionConfig, BulkActionConfig } from "@/types/data-table";
 
 export interface PaginatedData<T> {
     current_page: number;
@@ -40,6 +42,7 @@ interface DataTableProps<T> {
     createRoute?: string;
     createButtonLabel?: string;
     actions?: ActionConfig;
+    bulkActions?: BulkActionConfig[];
     onSort?: (field: string) => void;
 }
 
@@ -51,6 +54,7 @@ export function DataTable<T extends { id: number; title?: string }>({
     createRoute,
     createButtonLabel = 'Create New',
     actions,
+    bulkActions,
     onSort 
 }: DataTableProps<T>) {
     const [tableLoading, setTableLoading] = useState(false);
@@ -60,6 +64,18 @@ export function DataTable<T extends { id: number; title?: string }>({
     const [isModalOpen, setModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<T | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+    const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
+    const [allSelected, setAllSelected] = useState(false);
+    const [totalSelected, setTotalSelected] = useState(0);
+    const [pendingBulkAction, setPendingBulkAction] = useState<BulkActionConfig | null>(null);
+
+    // Reset selection when search/filters change
+    useEffect(() => {
+        setSelectedItems(new Set());
+        setAllSelected(false);
+        setTotalSelected(0);
+    }, [filters.search]);
 
     // Listen to Inertia events for loading state
     useEffect(() => {
@@ -143,6 +159,85 @@ export function DataTable<T extends { id: number; title?: string }>({
         });
     };
 
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            const newSelected = new Set(data.data.map(item => item.id));
+            setSelectedItems(newSelected);
+            setAllSelected(true);
+            setTotalSelected(data.total);
+        } else {
+            setSelectedItems(new Set());
+            setAllSelected(false);
+            setTotalSelected(0);
+        }
+    };
+
+    const handleSelectItem = (id: number, checked: boolean) => {
+        const newSelected = new Set(selectedItems);
+        if (checked) {
+            newSelected.add(id);
+            setTotalSelected(prev => prev + 1);
+        } else {
+            newSelected.delete(id);
+            setTotalSelected(prev => prev - 1);
+            setAllSelected(false);
+        }
+        setSelectedItems(newSelected);
+    };
+
+    const executeBulkAction = (action: BulkActionConfig) => {
+        const method = action.method || 'post';
+        setLoadingActions(prev => new Set([...prev, action.id]));
+        
+        const payload = {
+            ids: Array.from(selectedItems),
+            all: allSelected,
+            filters,
+            ...action.data
+        };
+
+        const options = {
+            preserveScroll: true,
+            onBefore: () => {
+                setLoadingActions(prev => new Set([...prev, action.id]));
+            },
+            onSuccess: () => {
+                setSelectedItems(new Set());
+                setAllSelected(false);
+                setTotalSelected(0);
+                setLoadingActions(new Set());
+                setPendingBulkAction(null);
+            },
+            onError: (errors: Record<string, string>) => {
+                setLoadingActions(new Set());
+                setPendingBulkAction(null);
+                console.error('Bulk action failed:', errors);
+            },
+            onFinish: () => {
+                setLoadingActions(new Set());
+                setPendingBulkAction(null);
+            }
+        };
+
+        if (method === 'delete') {
+            router.delete(route(action.route), {
+                data: payload,
+                ...options
+            });
+        } else {
+            router[method](route(action.route), payload, options);
+        }
+    };
+
+    const handleBulkAction = (action: BulkActionConfig) => {
+        setPendingBulkAction(action);
+    };
+
+    const handleConfirmBulkAction = () => {
+        if (!pendingBulkAction) return;
+        executeBulkAction(pendingBulkAction);
+    };
+
     const getSortIcon = (field: string) => {
         if (!field) return null;
         
@@ -212,13 +307,62 @@ export function DataTable<T extends { id: number; title?: string }>({
         ]
         : columns;
 
+    // Add selection column if bulk actions are configured
+    const columnsWithCheckbox: Column<T>[] = bulkActions?.length 
+        ? [
+            {
+                header: () => (
+                    <Checkbox
+                        checked={data.data.length > 0 && (allSelected || selectedItems.size === data.data.length)}
+                        onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
+                        aria-label="Select all"
+                    />
+                ),
+                accessorKey: 'selection',
+                cell: (row: T) => (
+                    <Checkbox
+                        checked={selectedItems.has(row.id)}
+                        onCheckedChange={(checked) => handleSelectItem(row.id, checked as boolean)}
+                        aria-label="Select row"
+                    />
+                ),
+                className: 'w-12'
+            },
+            ...columnsWithActions
+        ]
+        : columnsWithActions;
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
-                <SearchInput 
-                    value={filters.search} 
-                    onChange={handleSearch} 
-                />
+                <div className="flex items-center gap-4">
+                    <SearchInput 
+                        value={filters.search ?? ''} 
+                        onChange={handleSearch} 
+                    />
+                    {(bulkActions?.length ?? 0) > 0 && (selectedItems.size > 0 || allSelected) && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">
+                                {allSelected ? `All ${data.total} items selected` : `${totalSelected} selected`}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                {bulkActions?.map((action, index) => (
+                                    <Button
+                                        key={action.id}
+                                        variant={action.variant || 'outline'}
+                                        size="sm"
+                                        onClick={() => handleBulkAction(action)}
+                                        loading={loadingActions.has(action.id)}
+                                        className={action.className}
+                                    >
+                                        {action.icon}
+                                        {action.label}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
                 {createRoute && (
                     <Button asChild loading={creating}>
                         <Link href={route(createRoute)}>
@@ -238,11 +382,11 @@ export function DataTable<T extends { id: number; title?: string }>({
                         </div>
                     </div>
                 )}
-                <div className="min-h-[400px]">
+                <div className="min-h-[800px]">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b bg-muted/50">
-                                {columnsWithActions.map((column, index) => (
+                                {columnsWithCheckbox.map((column, index) => (
                                     <th 
                                         key={index}
                                         className={`px-4 py-3 text-left ${
@@ -251,9 +395,10 @@ export function DataTable<T extends { id: number; title?: string }>({
                                         onClick={() => column.sortable && handleSort(column.accessorKey as string)}
                                     >
                                         <div className="flex items-center">
-                                            <span className="text-sm font-medium">
-                                                {column.header}
-                                            </span>
+                                            {typeof column.header === 'function' 
+                                                ? column.header()
+                                                : <span className="text-sm font-medium">{column.header}</span>
+                                            }
                                             {column.sortable && getSortIcon(column.accessorKey as string)}
                                         </div>
                                     </th>
@@ -266,7 +411,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                                     key={rowIndex}
                                     className="border-b hover:bg-muted/50 transition-colors"
                                 >
-                                    {columnsWithActions.map((column, colIndex) => (
+                                    {columnsWithCheckbox.map((column, colIndex) => (
                                         <td 
                                             key={colIndex} 
                                             className={`px-4 py-3 ${column.className || ''}`}
@@ -281,7 +426,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                             {data.data.length === 0 && (
                                 <tr>
                                     <td 
-                                        colSpan={columnsWithActions.length} 
+                                        colSpan={columnsWithCheckbox.length} 
                                         className="text-center py-8 text-muted-foreground"
                                     >
                                         No records found
@@ -291,7 +436,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                             {data.data.length > 0 && data.data.length < 5 && (
                                 Array(5 - data.data.length).fill(null).map((_, index) => (
                                     <tr key={`empty-${index}`} className="border-b">
-                                        <td colSpan={columnsWithActions.length} className="px-4 py-3">&nbsp;</td>
+                                        <td colSpan={columnsWithCheckbox.length} className="px-4 py-3">&nbsp;</td>
                                     </tr>
                                 ))
                             )}
@@ -323,6 +468,31 @@ export function DataTable<T extends { id: number; title?: string }>({
                         ? `Are you sure you want to delete "${itemToDelete.title}"? This action cannot be undone.`
                         : 'Are you sure you want to delete this item? This action cannot be undone.'
                 }
+            />
+
+            <ConfirmationModal
+                isOpen={!!pendingBulkAction}
+                onClose={() => {
+                    setPendingBulkAction(null);
+                    setLoadingActions(prev => {
+                        const next = new Set(prev);
+                        if (pendingBulkAction) {
+                            next.delete(pendingBulkAction.id);
+                        }
+                        return next;
+                    });
+                }}
+                onConfirm={handleConfirmBulkAction}
+                loading={pendingBulkAction ? loadingActions.has(pendingBulkAction.id) : false}
+                title={pendingBulkAction?.confirmTitle || "Confirm Action"}
+                description={
+                    pendingBulkAction?.confirmDescription || 
+                    `Are you sure you want to ${pendingBulkAction?.label?.toLowerCase()} ${
+                        allSelected ? 'all' : totalSelected
+                    } items?`
+                }
+                confirmLabel={pendingBulkAction?.label}
+                // confirmVariant={pendingBulkAction?.variant}
             />
         </div>
     );
