@@ -71,7 +71,7 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'roles' => $user->roles->pluck('id'),
+                'roles' => $user->roles->pluck('id')->toArray(),
             ],
             'roles' => Role::all(),
         ]);
@@ -105,6 +105,12 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Prevent deletion of super admin (first user)
+        if ($user->id === 1) {
+            return redirect()->route('users.index')
+                ->with('error', 'Cannot delete super admin user.');
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')

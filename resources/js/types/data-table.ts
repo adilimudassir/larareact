@@ -100,6 +100,8 @@ export interface ActionItem {
     route: string;
     /** Label for accessibility */
     label: string;
+    /** Optional function to determine if action should be shown */
+    shouldShow?: (row: any) => boolean;
 }
 
 /**

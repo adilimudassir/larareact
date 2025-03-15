@@ -237,7 +237,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                 accessorKey: 'actions',
                 cell: (row: T) => (
                     <div className="flex items-center justify-end gap-2">
-                        {actions.show && (
+                        {actions.show && (!actions.show.shouldShow || actions.show.shouldShow(row)) && (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -249,7 +249,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                                 <span className="sr-only">{actions.show.label}</span>
                             </Button>
                         )}
-                        {actions.edit && (
+                        {actions.edit && (!actions.edit.shouldShow || actions.edit.shouldShow(row)) && (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -261,7 +261,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                                 <span className="sr-only">{actions.edit.label}</span>
                             </Button>
                         )}
-                        {actions.delete && (
+                        {actions.delete && (!actions.delete.shouldShow || actions.delete.shouldShow(row)) && (
                             <Button
                                 variant="outline"
                                 size="sm"

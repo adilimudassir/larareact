@@ -175,7 +175,8 @@ export default function Index({ roles, filters }: RolePageProps) {
                             } : undefined,
                             delete: can('delete-roles') ? {
                                 route: 'roles.destroy',
-                                label: 'Delete role'
+                                label: 'Delete role',
+                                shouldShow: (role) => role.name !== 'super-admin'
                             } : undefined
                         }}
                     />

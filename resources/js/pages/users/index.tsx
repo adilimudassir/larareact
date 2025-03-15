@@ -105,7 +105,8 @@ export default function Index({ users, filters }: UserPageProps) {
                         } : undefined,
                         delete: can('delete-users') ? {
                             route: 'users.destroy',
-                            label: 'Delete user'
+                            label: 'Delete user',
+                            shouldShow: (user) => user.id !== 1
                         } : undefined
                     }}
                 />

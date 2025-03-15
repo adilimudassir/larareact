@@ -10,7 +10,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import InputError from '@/components/input-error';
 
 interface Props {
-    user: User;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+        roles: number[];
+    };
     roles: Role[];
 }
 
@@ -31,7 +36,7 @@ export default function Edit({ user, roles }: Props) {
         email: user.email,
         password: '',
         password_confirmation: '',
-        roles: user.roles.map(role => role.id),
+        roles: user.roles,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
