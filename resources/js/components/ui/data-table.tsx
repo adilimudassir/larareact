@@ -8,43 +8,7 @@ import { Link } from "@inertiajs/react";
 import { DeleteConfirmationModal } from "@/components/data-table/delete-confirmation-modal";
 import { ConfirmationModal } from "@/components/data-table/confirmation-modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { Column, ActionConfig, BulkActionConfig } from "@/types/data-table";
-
-export interface PaginatedData<T> {
-    current_page: number;
-    data: T[];
-    first_page_url: string;
-    from: number;
-    last_page: number;
-    last_page_url: string;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-    next_page_url: string | null;
-    path: string;
-    per_page: number;
-    prev_page_url: string | null;
-    to: number;
-    total: number;
-}
-
-interface DataTableProps<T> {
-    data: PaginatedData<T>;
-    columns: Column<T>[];
-    filters: {
-        search: string;
-        sort: string;
-        direction: string;
-    };
-    routeName: string;
-    createRoute?: string;
-    createButtonLabel?: string;
-    actions?: ActionConfig;
-    bulkActions?: BulkActionConfig[];
-    onSort?: (field: string) => void;
-}
+import type { Column, BulkActionConfig, DataTableProps } from "@/types/data-table";
 
 export function DataTable<T extends { id: number; title?: string }>({ 
     data, 
@@ -211,7 +175,6 @@ export function DataTable<T extends { id: number; title?: string }>({
             onError: (errors: Record<string, string>) => {
                 setLoadingActions(new Set());
                 setPendingBulkAction(null);
-                console.error('Bulk action failed:', errors);
             },
             onFinish: () => {
                 setLoadingActions(new Set());
