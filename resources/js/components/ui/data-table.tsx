@@ -393,22 +393,24 @@ export function DataTable<T extends { id: number; title?: string }>({
                                     ))}
                                 </TableRow>
                             ))}
-                            {data.data.length === 0 && (
+                            {data.data.length === 0 ? (
                                 <TableRow>
                                     <TableCell 
                                         colSpan={columnsWithCheckbox.length} 
-                                        className="text-center h-24 text-muted-foreground"
+                                        className="h-[640px] text-center text-muted-foreground"
                                     >
-                                        No records found
+                                        <div className="flex h-full items-center justify-center">
+                                            <span>No records found</span>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            )}
-                            {data.data.length > 0 && data.data.length < 5 && (
-                                Array(5 - data.data.length).fill(null).map((_, index) => (
-                                    <TableRow key={`empty-${index}`}>
-                                        <TableCell colSpan={columnsWithCheckbox.length}>&nbsp;</TableCell>
-                                    </TableRow>
-                                ))
+                            ) : data.data.length < 10 && (
+                                <TableRow>
+                                    <TableCell 
+                                        colSpan={columnsWithCheckbox.length}
+                                        style={{ height: `${(10 - data.data.length) * 64}px` }}
+                                    />
+                                </TableRow>
                             )}
                         </TableBody>
                     </Table>
