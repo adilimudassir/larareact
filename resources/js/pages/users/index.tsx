@@ -6,6 +6,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { type Column } from '@/types/data-table';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
+import { usePermissions } from '@/hooks/use-permissions';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,6 +16,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ users, filters }: UserPageProps) {
+    const { can } = usePermissions();
+    
     const columns: Column<User>[] = [
         {
             header: '#',
@@ -93,17 +96,17 @@ export default function Index({ users, filters }: UserPageProps) {
                     columns={columns}
                     filters={filters}
                     routeName="users.index"
-                    createRoute="users.create"
+                    createRoute={can('create-users') ? 'users.create' : undefined}
                     createButtonLabel="Create User"
                     actions={{
-                        edit: {
+                        edit: can('update-users') ? {
                             route: 'users.edit',
                             label: 'Edit user'
-                        },
-                        delete: {
+                        } : undefined,
+                        delete: can('delete-users') ? {
                             route: 'users.destroy',
                             label: 'Delete user'
-                        }
+                        } : undefined
                     }}
                 />
             </div>

@@ -37,7 +37,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $user = $request->user();
+        $permissions = $user ? $user->getAllPermissions()->pluck('name')->toArray() : [];
 
         return [
             ...parent::share($request),
@@ -46,9 +47,9 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'permissions' => $permissions,
             ],
             'pageSizeOptions' => config('pagination.allowed_page_sizes'),
             'defaultPageSize' => config('pagination.default_page_size'),

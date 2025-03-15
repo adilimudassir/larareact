@@ -20,6 +20,7 @@ const mainNavItems: NavGroup[] = [
                 title: 'Todos',
                 href: '/todos',
                 icon: Folder,
+                permission: 'view-todos'
             },
         ],
     },
@@ -30,11 +31,13 @@ const mainNavItems: NavGroup[] = [
                 title: 'Users',
                 href: '/users',
                 icon: Users,
+                permission: 'view-users'
             },
             {
                 title: 'Roles',
                 href: '/roles',
                 icon: Shield,
+                permission: 'view-roles'
             },
         ],
     },
@@ -49,7 +52,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href="/" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

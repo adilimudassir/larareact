@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { formatDate, formatModelName } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-
+import { PermissionGuard } from '@/components/permission-guard';
+import { usePermissions } from '@/hooks/use-permissions';
+import Alert, { AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -18,6 +20,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ roles, filters }: RolePageProps) {
+    const { can } = usePermissions();
+
     const columns: Column<Role>[] = [
         {
             header: '#',
@@ -34,7 +38,7 @@ export default function Index({ roles, filters }: RolePageProps) {
             accessorKey: 'name',
             cell: (row: Role) => (
                 <div className="flex items-center">
-                    <span className="font-medium">{row.name.charAt(0).toUpperCase() + row.name.slice(1)}</span>
+                    <span className="font-medium">{row.name}</span>
                 </div>
             ),
             className: 'min-w-[200px]',
@@ -44,7 +48,6 @@ export default function Index({ roles, filters }: RolePageProps) {
             header: 'Permissions',
             accessorKey: 'permissions',
             cell: (row: Role) => {
-                // Group permissions by model and group
                 const groupedPermissions = row.permissions.reduce((acc, permission) => {
                     const [action, model] = permission.name.split('-');
                     const group = permission.group || 'other';
@@ -62,7 +65,8 @@ export default function Index({ roles, filters }: RolePageProps) {
                 return (
                     <div className="flex flex-col gap-3">
                         {Object.entries(groupedPermissions).map(([group, models]) => (
-                            <div className="flex flex-wrap items-start gap-2" key={group}>
+                            <div key={group} className="space-y-1">
+                                <div className="flex flex-wrap items-start gap-2">
                                     {Object.entries(models).sort(([a], [b]) => a.localeCompare(b)).map(([model, permissions]) => {
                                         const actions = permissions.map(p => p.action);
                                         const hasAllActions = ['view', 'create', 'update', 'delete'].every(action => 
@@ -95,7 +99,7 @@ export default function Index({ roles, filters }: RolePageProps) {
                                                         className="w-[200px] bg-white dark:bg-zinc-950 border dark:border-zinc-800"
                                                     >
                                                         <div className="space-y-2">
-                                                            <div className="text-xs font-medium capitalize border-b pb-1 border-zinc-200 dark:border-zinc-800 text-black">
+                                                            <div className="text-xs font-medium capitalize border-b pb-1 border-zinc-200 dark:border-zinc-800">
                                                                 {formatModelName(model)} Permissions
                                                             </div>
                                                             <div className="grid grid-cols-2 gap-1">
@@ -121,6 +125,7 @@ export default function Index({ roles, filters }: RolePageProps) {
                                         );
                                     })}
                                 </div>
+                            </div>
                         ))}
                     </div>
                 );
@@ -146,25 +151,36 @@ export default function Index({ roles, filters }: RolePageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <DataTable
-                    data={roles}
-                    columns={columns}
-                    filters={filters}
-                    routeName="roles.index"
-                    createRoute="roles.create"
-                    actions={{
-                        edit: {
-                            route: 'roles.edit',
-                            label: 'Edit role'
-                        },
-                        delete: {
-                            route: 'roles.destroy',
-                            label: 'Delete role'
-                        }
-                    }}
-                />
-            </div>
+            <PermissionGuard 
+                permission="view-roles"
+                fallback={
+                    <Alert>
+                        <AlertDescription>
+                            You don't have permission to view roles.
+                        </AlertDescription>
+                    </Alert>
+                }
+            >
+                <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+                    <DataTable
+                        data={roles}
+                        columns={columns}
+                        filters={filters}
+                        routeName="roles.index"
+                        createRoute={can('create-roles') ? 'roles.create' : undefined}
+                        actions={{
+                            edit: can('update-roles') ? {
+                                route: 'roles.edit',
+                                label: 'Edit role'
+                            } : undefined,
+                            delete: can('delete-roles') ? {
+                                route: 'roles.destroy',
+                                label: 'Delete role'
+                            } : undefined
+                        }}
+                    />
+                </div>
+            </PermissionGuard>
         </AppLayout>
     );
 } 

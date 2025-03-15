@@ -9,6 +9,7 @@ import type { Todo, TodoPageProps } from '@/types/todos';
 import { Head, usePage } from '@inertiajs/react';
 import { CheckCircle, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { usePermissions } from '@/hooks/use-permissions';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -19,6 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index({ todos, filters }: TodoPageProps) {
     const { flash } = usePage<SharedPageProps>().props;
+    const { can } = usePermissions();
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
@@ -60,28 +62,35 @@ export default function Index({ todos, filters }: TodoPageProps) {
         },
     ];
 
-    const bulkActions: BulkActionConfig[] = [
-        {
-            id: 'mark-complete',
-            route: 'todos.bulk.update',
-            method: 'put',
-            label: 'Mark Complete',
-            variant: 'outline',
-            className: 'text-green-600 hover:text-green-700',
-            icon: <CheckCircle className="mr-2 h-4 w-4" />,
-            data: { completed: true },
-        },
-        {
-            id: 'mark-incomplete',
-            route: 'todos.bulk.update',
-            method: 'put',
-            label: 'Mark Incomplete',
-            variant: 'outline',
-            className: 'text-yellow-600 hover:text-yellow-700',
-            icon: <XCircle className="mr-2 h-4 w-4" />,
-            data: { completed: false },
-        },
-        {
+    const bulkActions: BulkActionConfig[] = [];
+
+    if (can('update-todos')) {
+        bulkActions.push(
+            {
+                id: 'mark-complete',
+                route: 'todos.bulk.update',
+                method: 'put',
+                label: 'Mark Complete',
+                variant: 'outline',
+                className: 'text-green-600 hover:text-green-700',
+                icon: <CheckCircle className="mr-2 h-4 w-4" />,
+                data: { completed: true },
+            },
+            {
+                id: 'mark-incomplete',
+                route: 'todos.bulk.update',
+                method: 'put',
+                label: 'Mark Incomplete',
+                variant: 'outline',
+                className: 'text-yellow-600 hover:text-yellow-700',
+                icon: <XCircle className="mr-2 h-4 w-4" />,
+                data: { completed: false },
+            }
+        );
+    }
+
+    if (can('delete-todos')) {
+        bulkActions.push({
             id: 'delete-selected',
             route: 'todos.bulk.destroy',
             method: 'delete',
@@ -89,8 +98,8 @@ export default function Index({ todos, filters }: TodoPageProps) {
             variant: 'outline',
             className: 'text-red-600 hover:text-red-700',
             icon: <Trash2 className="mr-2 h-4 w-4" />,
-        },
-    ];
+        });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -108,22 +117,22 @@ export default function Index({ todos, filters }: TodoPageProps) {
                     columns={columns}
                     filters={filters}
                     routeName="todos.index"
-                    createRoute="todos.create"
+                    createRoute={can('create-todos') ? 'todos.create' : undefined}
                     actions={{
-                        show: {
+                        show: can('view-todos') ? {
                             route: 'todos.show',
                             label: 'Show',
-                        },
-                        edit: {
+                        } : undefined,
+                        edit: can('update-todos') ? {
                             route: 'todos.edit',
                             label: 'Edit',
-                        },
-                        delete: {
+                        } : undefined,
+                        delete: can('delete-todos') ? {
                             route: 'todos.destroy',
                             label: 'Delete',
-                        },
+                        } : undefined,
                     }}
-                    bulkActions={bulkActions}
+                    bulkActions={bulkActions.length > 0 ? bulkActions : undefined}
                 />
             </div>
         </AppLayout>

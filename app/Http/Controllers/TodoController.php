@@ -14,6 +14,14 @@ class TodoController extends Controller
 {
     use HasPagination;
 
+    public function __construct()
+    {
+        $this->middleware('can:view-todos')->only(['index', 'show']);
+        $this->middleware('can:create-todos')->only(['create', 'store']);
+        $this->middleware('can:update-todos')->only(['edit', 'update', 'bulkUpdate']);
+        $this->middleware('can:delete-todos')->only(['destroy', 'bulkDestroy']);
+    }
+
     /**
      * Display a listing of the resource.
      */
