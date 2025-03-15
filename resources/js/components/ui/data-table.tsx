@@ -8,7 +8,16 @@ import { Link } from "@inertiajs/react";
 import { DeleteConfirmationModal } from "@/components/data-table/delete-confirmation-modal";
 import { ConfirmationModal } from "@/components/data-table/confirmation-modal";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableHead,
+    TableRow,
+    TableCell,
+} from "@/components/ui/table";
 import type { Column, BulkActionConfig, DataTableProps } from "@/types/data-table";
+import { cn } from "@/lib/utils";
 
 export function DataTable<T extends { id: number; title?: string }>({ 
     data, 
@@ -346,15 +355,16 @@ export function DataTable<T extends { id: number; title?: string }>({
                     </div>
                 )}
                 <div className="min-h-[800px]">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b bg-muted/50">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="bg-muted/50">
                                 {columnsWithCheckbox.map((column, index) => (
-                                    <th 
+                                    <TableHead
                                         key={index}
-                                        className={`px-4 py-3 text-left ${
-                                            column.sortable ? 'cursor-pointer hover:bg-muted/70 transition-colors' : ''
-                                        } ${column.className || ''}`}
+                                        className={cn(
+                                            column.sortable && "cursor-pointer hover:bg-muted/70 transition-colors",
+                                            column.className
+                                        )}
                                         onClick={() => column.sortable && handleSort(column.accessorKey as string)}
                                     >
                                         <div className="flex items-center">
@@ -364,47 +374,44 @@ export function DataTable<T extends { id: number; title?: string }>({
                                             }
                                             {column.sortable && getSortIcon(column.accessorKey as string)}
                                         </div>
-                                    </th>
+                                    </TableHead>
                                 ))}
-                            </tr>
-                        </thead>
-                        <tbody>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {data.data.map((row, rowIndex) => (
-                                <tr 
-                                    key={rowIndex}
-                                    className="border-b hover:bg-muted/50 transition-colors"
-                                >
+                                <TableRow key={rowIndex}>
                                     {columnsWithCheckbox.map((column, colIndex) => (
-                                        <td 
+                                        <TableCell 
                                             key={colIndex} 
-                                            className={`px-4 py-3 ${column.className || ''}`}
+                                            className={column.className}
                                         >
                                             {column.cell 
                                                 ? column.cell(row, rowIndex)
                                                 : (row[column.accessorKey as keyof T] as React.ReactNode)}
-                                        </td>
+                                        </TableCell>
                                     ))}
-                                </tr>
+                                </TableRow>
                             ))}
                             {data.data.length === 0 && (
-                                <tr>
-                                    <td 
+                                <TableRow>
+                                    <TableCell 
                                         colSpan={columnsWithCheckbox.length} 
-                                        className="text-center py-8 text-muted-foreground"
+                                        className="text-center h-24 text-muted-foreground"
                                     >
                                         No records found
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             )}
                             {data.data.length > 0 && data.data.length < 5 && (
                                 Array(5 - data.data.length).fill(null).map((_, index) => (
-                                    <tr key={`empty-${index}`} className="border-b">
-                                        <td colSpan={columnsWithCheckbox.length} className="px-4 py-3">&nbsp;</td>
-                                    </tr>
+                                    <TableRow key={`empty-${index}`}>
+                                        <TableCell colSpan={columnsWithCheckbox.length}>&nbsp;</TableCell>
+                                    </TableRow>
                                 ))
                             )}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
             <DataTablePagination 
@@ -455,7 +462,7 @@ export function DataTable<T extends { id: number; title?: string }>({
                     } items?`
                 }
                 confirmLabel={pendingBulkAction?.label}
-                // confirmVariant={pendingBulkAction?.variant}
+                confirmVariant={pendingBulkAction?.variant}
             />
         </div>
     );
