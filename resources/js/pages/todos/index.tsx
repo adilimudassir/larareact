@@ -118,7 +118,6 @@ export default function Index({ todos, filters }: TodoPageProps) {
                     filters={filters}
                     routeName="todos.index"
                     createRoute="todos.create"
-                    createButtonLabel="Create Todo"
                     actions={{
                         show: {
                             route: 'todos.show',

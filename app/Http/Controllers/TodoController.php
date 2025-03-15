@@ -8,7 +8,6 @@ use Inertia\Response;
 use App\Filters\TodoFilter;
 use Illuminate\Http\Request;
 use App\Traits\HasPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 
 class TodoController extends Controller
