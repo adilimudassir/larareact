@@ -2,21 +2,41 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
+import { type NavItem, type NavGroup } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Folder, LayoutGrid } from 'lucide-react';
+import { Folder, LayoutGrid, Shield, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const mainNavItems: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: '/',
-        icon: LayoutGrid,
+        title: 'Main',
+        items: [
+            {
+                title: 'Dashboard',
+                href: '/',
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Todos',
+                href: '/todos',
+                icon: Folder,
+            },
+        ],
     },
     {
-        title: 'Todos',
-        href: '/todos',
-        icon: Folder,
+        title: 'Access Management',
+        items: [
+            {
+                title: 'Users',
+                href: '/users',
+                icon: Users,
+            },
+            {
+                title: 'Roles',
+                href: '/roles',
+                icon: Shield,
+            },
+        ],
     },
 ];
 

@@ -94,7 +94,7 @@ export default function Index({ todos, filters }: TodoPageProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Todos" />
+            <Head title="Todos"  />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {showAlert && (
                     <Alert variant="default">
